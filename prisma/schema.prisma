@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         BigInt    @id @default(autoincrement())
+  createdAt  DateTime? @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+  email      String    @unique(map: "idx_users_email")
+  password   String
+
+  @@index([deleted_at], map: "idx_users_deleted_at")
+  @@map("users")
+}
+
+model Post {
+  id              BigInt    @id @default(autoincrement())
+  createdAt       DateTime? @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deleted_at      DateTime? @db.Timestamptz(6)
+  title           String
+  slug            String    @unique(map: "idx_posts_slug")
+  body            String?
+  excerpt         String?
+  tag             String?
+  emojiIcon       String?   @map("emoji_icon")
+  readTimeMinutes BigInt?   @map("read_time_minutes")
+  status          String?   @default("draft")
+  publishedAt     DateTime? @map("published_at") @db.Timestamptz(6)
+
+  @@index([deleted_at], map: "idx_posts_deleted_at")
+  @@map("posts")
+}
+
+model Project {
+  id           BigInt    @id @default(autoincrement())
+  createdAt    DateTime? @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deleted_at   DateTime? @db.Timestamptz(6)
+  name         String
+  description  String?
+  logoUrl      String?   @map("logo_url")
+  githubUrl    String?   @map("github_url")
+  liveUrl      String?   @map("live_url")
+  tags         String[]
+  isFeatured   Boolean?  @default(false) @map("is_featured")
+  featureOrder BigInt?   @default(0) @map("feature_order")
+
+  @@index([deleted_at], map: "idx_projects_deleted_at")
+  @@map("projects")
+}
