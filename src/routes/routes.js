@@ -6,6 +6,11 @@ const projectsHandler = require("../handlers/projects");
 const contactHandler = require("../handlers/contact");
 const { authRequired } = require("../middleware/auth");
 
+// Health check
+router.get("/health", (req, res) => {
+	res.json({ status: "ok" });
+});
+
 // --- Auth ---
 router.post("/auth/login", authHandler.login);
 router.post("/seed", authHandler.seedAdmin);
