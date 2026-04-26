@@ -3,16 +3,23 @@ const fs = require("fs");
 const multer = require("multer");
 const prisma = require("../config/database");
 
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+// Cloudinary config
+cloudinary.config({
+	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+	api_key: process.env.CLOUDINARY_API_KEY,
+	api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 // Multer setup — store logos in uploads/logos/
-const storage = multer.diskStorage({
-	destination: (req, file, cb) => {
-		const dir = path.join(__dirname, "../../uploads/logos");
-		if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-		cb(null, dir);
-	},
-	filename: (req, file, cb) => {
-		const ext = path.extname(file.originalname);
-		cb(null, `${Date.now()}${ext}`);
+const storage = new CloudinaryStorage({
+	cloudinary,
+	params: {
+		folder: "fantom-portfolio/logos",
+		allowed_formats: ["jpg", "jpeg", "png", "webp", "svg"],
+		transformation: [{ width: 200, height: 200, crop: "limit" }],
 	},
 });
 
@@ -154,11 +161,9 @@ const uploadProjectLogo = [
 	upload.single("logo"),
 	async (req, res) => {
 		const { id } = req.params;
-
 		if (!req.file) {
 			return res.status(400).json({ error: "Logo file is required" });
 		}
-
 		try {
 			const existing = await prisma.project.findUnique({
 				where: { id: parseInt(id) },
@@ -167,7 +172,8 @@ const uploadProjectLogo = [
 				return res.status(404).json({ error: "Project not found" });
 			}
 
-			const logoUrl = `/uploads/logos/${req.file.filename}`;
+			// Cloudinary returns the full URL directly — no need to prefix with API URL
+			const logoUrl = req.file.path;
 
 			const project = await prisma.project.update({
 				where: { id: parseInt(id) },
