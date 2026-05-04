@@ -5,10 +5,16 @@ const postsHandler = require("../handlers/posts");
 const projectsHandler = require("../handlers/projects");
 const contactHandler = require("../handlers/contact");
 const { authRequired } = require("../middleware/auth");
+const prisma = require("../config/database");
 
 // Health check
-router.get("/health", (req, res) => {
-	res.json({ status: "ok" });
+router.get("/health", async (req, res) => {
+  try {
+    await prisma.post.count();
+    res.json({ status: "ok" });
+  } catch {
+    res.status(500).json({ status: "error" });
+  }
 });
 
 // --- Auth ---
